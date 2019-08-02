@@ -1,0 +1,512 @@
+e1t <- epsilon_hC(obs, vec, Ss2.4)
+}
+obs
+e1t
+p <- 4
+q <- 1
+Mcov <- diag(p)
+delta <- -0.5
+Vmu <- numeric(p) + delta*c(1,0,0,0)
+g <- rep(1/p,p)
+vec <- 1:q
+S1.0 <- S2.0 <- numeric(p)
+Ss2.4 <- gtools::permutations(p,q,1:p)
+k <- 0.5
+L <- 19.23
+I <- 1e4
+pb <- txtProgressBar(max=I,style = 3,char='+')
+global$s1 <- global$s2 <- numeric(p)
+ys <- sapply(1:I, yt2.pb, T)
+sum(ys >= L)/I # power
+tibble(y=ys) %>%
+ggplot(aes(y)) +
+geom_histogram(binwidth = 0.1) +
+geom_vline(xintercept = L) +
+labs(title='Histograma de la estadistica de monitoreo en control',
+subtitle = 'Alternativa propuesta')
+rm(alter)
+rm(S1.0)
+rm(S2.0)
+p <- 4
+q <- 1
+Mcov <- diag(p)
+Vmu <- numeric(p)
+g <- rep(1/p,p)
+vec <- 1:q
+# S1.0 <- S2.0 <- numeric(p)
+Ss2.4 <- gtools::permutations(p,q,1:p)
+k <- 0.5
+L <- 19.23
+I <- 1e4
+pb <- txtProgressBar(max=I,style = 3,char='+')
+global$s1 <- global$s2 <- numeric(p)
+ys <- sapply(1:I, yt2.pb, T)
+sum(ys >= L)/I # alpha
+tibble(y=ys) %>%
+ggplot(aes(y)) +
+geom_histogram(binwidth = 0.1) +
+geom_vline(xintercept = L) +
+labs(title='Histograma de la estadistica de monitoreo en control',
+subtitle = 'Alternativa propuesta')
+Mcov <- diag(p)
+Mcov
+Mcov+0.5
+Mcov+0.5-Mcov*0.5
+Mcov <- Mcov2+0.5-Mcov2*0.5
+# PROPUESTA
+p <- 4
+q <- 1
+Mcov2 <- diag(p)
+Mcov <- Mcov2+0.5-Mcov2*0.5
+Vmu <- numeric(p)
+g <- rep(1/p,p)
+vec <- 1:q
+Ss2.4 <- gtools::permutations(p,q,1:p)
+k <- 0.5
+L <- 19.23
+p <- 4
+q <- 1
+# Mcov <- diag(p)
+Mcov2 <- diag(p)
+Mcov <- Mcov2+0.5-Mcov2*0.5
+Vmu <- numeric(p)
+n <- 5e4
+muestra <- MASS::mvrnorm(n,Vmu,Mcov)
+# Si solo estamos interesados en epsilon 1
+epsi.1 <- M.epsilon(muestra,1)
+epsi.1
+colMeans(epsi.1)
+Mcov <- Mcov2+4-Mcov2*4
+Vmu <- numeric(p)
+n <- 5e4
+muestra <- MASS::mvrnorm(n,Vmu,Mcov)
+Mcov <- Mcov2+0.5-Mcov2*0.5
+muestra <- MASS::mvrnorm(n,Vmu,Mcov)
+data(Alsmelterdata)
+data(NPMVCP::Alsmelterdata)
+library(NPMVCP)
+data(Alsmelterdata)
+View(Alsmelterdata)
+CLp10c15
+# Con datos verdaderos realizar autoArima
+Alsmelterdata %>%
+map(forecast::auto.arima)
+library(tidyverse)
+library(ggfortify)
+library(NPMVCP)
+Alsmelterdata %>%
+map(forecast::auto.arima)
+# Con datos verdaderos realizar autoArima
+Alsmelterdata %>%
+map(forecast::auto.arima, max.q = 0)
+# Con datos verdaderos realizar autoArima
+Alsmelterdata %>%
+map(forecast::auto.arima, max.q = 0, max.d = 0)
+Alsmelterdata %>%
+ar.yw()
+Alsmelterdata %>%
+ar.yw(x=.)
+Alsmelterdata %>%
+map(ar.yw)
+set.seed(1000)
+#### Generate 500 observations of the IC data from the
+#### IC process distribution t(3)/sqrt(3)
+y = rt(500,3)/sqrt(3)
+y
+y1=sort(y)      # ordered y from the smallest to the largest
+q1=(y1[50]+y1[51])/2
+q2=(y1[100]+y1[101])/2
+q3=(y1[150]+y1[151])/2
+q4=(y1[200]+y1[201])/2
+q5=(y1[250]+y1[251])/2
+q6=(y1[300]+y1[301])/2
+q7=(y1[350]+y1[351])/2
+q8=(y1[400]+y1[401])/2
+q9=(y1[450]+y1[451])/2
+q1
+y1
+q9
+f0=rep(0.1,10)  # f0 is the IC distribution of the categorized data
+f0
+x1=rt(50,3)/sqrt(3)
+x2=rt(50,3)/sqrt(3)+1
+x = c(x1,x2)
+x
+n = length(x)
+n
+kP=0.01
+hP=11.377
+gnl=matrix(0,n,10)    # Define g_nl
+gnl
+q1
+for(i in 1:n){
+if(x[i] <= q1){gnl[i,1]=1}
+if ((x[i] > q1) & (x[i] <= q2)){gnl[i,2]=1}
+if ((x[i] > q2) & (x[i] <= q3)){gnl[i,3]=1}
+if ((x[i] > q3) & (x[i] <= q4)){gnl[i,4]=1}
+if ((x[i] > q4) & (x[i] <= q5)){gnl[i,5]=1}
+if ((x[i] > q5) & (x[i] <= q6)){gnl[i,6]=1}
+if ((x[i] > q6) & (x[i] <= q7)){gnl[i,7]=1}
+if ((x[i] > q7) & (x[i] <= q8)){gnl[i,8]=1}
+if ((x[i] > q8) & (x[i] <= q9)){gnl[i,9]=1}
+if (x[i] > q9){gnl[i,10]=1}
+}
+gnl
+Bn = rep(0,n)
+Bn
+Unobs=matrix(0,n,10)
+Unexp=matrix(0,n,10)
+Unobs
+CnP = rep(0,n)
+CnP
+gnl
+gnl[1,]
+f0
+if(Bn[1] > kP){
+Unobs[1,]=gnl[1,]*(1-kP/Bn[1])
+Unexp[1,]=f0*(1-kP/Bn[1])
+}
+if(Bn[1] <= kP){
+Unobs[1,]=t(rep(0,10))
+Unexp[1,]=t(rep(0,10))
+}
+gnl[1,]
+CnP[1]=sum((Unobs[1,]-Unexp[1,])^2/Unexp[1,])
+CnP[1]
+Unexp[1,]
+Bn[1]=sum((gnl[1,]-f0)^2/f0)
+if(Bn[1] > kP){
+Unobs[1,]=gnl[1,]*(1-kP/Bn[1])
+Unexp[1,]=f0*(1-kP/Bn[1])
+}
+if(Bn[1] <= kP){
+Unobs[1,]=t(rep(0,10))
+Unexp[1,]=t(rep(0,10))
+}
+CnP[1]=sum((Unobs[1,]-Unexp[1,])^2/Unexp[1,])
+CnP[1]
+##### R-code for Example 8.8. It writes the related data to the file
+##### "example88.dat" and makes "fig810.ps"
+set.seed(1000)
+#### Generate 500 observations of the IC data from the
+#### IC process distribution t(3)/sqrt(3)
+y = rt(500,3)/sqrt(3)
+#### Define the boundary q1, q2, ... q_p-1 where p=10
+y1=sort(y)      # ordered y from the smallest to the largest
+q1=(y1[50]+y1[51])/2
+q2=(y1[100]+y1[101])/2
+q3=(y1[150]+y1[151])/2
+q4=(y1[200]+y1[201])/2
+q5=(y1[250]+y1[251])/2
+q6=(y1[300]+y1[301])/2
+q7=(y1[350]+y1[351])/2
+q8=(y1[400]+y1[401])/2
+q9=(y1[450]+y1[451])/2
+f0=rep(0.1,10)  # f0 is the IC distribution of the categorized data
+#### Generate 100 phase II observations for online process monitoring,
+#### among which 50 observations are from the t(3)/sqrt(3) distribution,
+#### and another 50 observations are from the t(3)/sqrt(3)+1 distribution.
+#### So, there is a mean shift at tau=51.
+x1=rt(50,3)/sqrt(3)
+x2=rt(50,3)/sqrt(3)+1
+x = c(x1,x2)
+n = length(x)
+kP=0.01
+hP=11.377
+gnl=matrix(0,n,10)    # Define g_nl
+for(i in 1:n){
+if(x[i] <= q1){gnl[i,1]=1}
+if ((x[i] > q1) & (x[i] <= q2)){gnl[i,2]=1}
+if ((x[i] > q2) & (x[i] <= q3)){gnl[i,3]=1}
+if ((x[i] > q3) & (x[i] <= q4)){gnl[i,4]=1}
+if ((x[i] > q4) & (x[i] <= q5)){gnl[i,5]=1}
+if ((x[i] > q5) & (x[i] <= q6)){gnl[i,6]=1}
+if ((x[i] > q6) & (x[i] <= q7)){gnl[i,7]=1}
+if ((x[i] > q7) & (x[i] <= q8)){gnl[i,8]=1}
+if ((x[i] > q8) & (x[i] <= q9)){gnl[i,9]=1}
+if (x[i] > q9){gnl[i,10]=1}
+}
+# Define the charting statistic C_{n,P}
+Bn = rep(0,n)
+Unobs=matrix(0,n,10)
+Unexp=matrix(0,n,10)
+CnP = rep(0,n)
+Bn[1]=sum((gnl[1,]-f0)^2/f0)
+if(Bn[1] > kP){
+Unobs[1,]=gnl[1,]*(1-kP/Bn[1])
+Unexp[1,]=f0*(1-kP/Bn[1])
+}
+if(Bn[1] <= kP){
+Unobs[1,]=t(rep(0,10))
+Unexp[1,]=t(rep(0,10))
+}
+CnP[1]=sum((Unobs[1,]-Unexp[1,])^2/Unexp[1,])
+CnP[1]
+Unexp[1,]
+##### R-code for Example 8.8. It writes the related data to the file
+##### "example88.dat" and makes "fig810.ps"
+set.seed(1000)
+#### Generate 500 observations of the IC data from the
+#### IC process distribution t(3)/sqrt(3)
+y = rt(500,3)/sqrt(3)
+#### Define the boundary q1, q2, ... q_p-1 where p=10
+y1=sort(y)      # ordered y from the smallest to the largest
+q1=(y1[50]+y1[51])/2
+q2=(y1[100]+y1[101])/2
+q3=(y1[150]+y1[151])/2
+q4=(y1[200]+y1[201])/2
+q5=(y1[250]+y1[251])/2
+q6=(y1[300]+y1[301])/2
+q7=(y1[350]+y1[351])/2
+q8=(y1[400]+y1[401])/2
+q9=(y1[450]+y1[451])/2
+f0=rep(0.1,10)  # f0 is the IC distribution of the categorized data
+#### Generate 100 phase II observations for online process monitoring,
+#### among which 50 observations are from the t(3)/sqrt(3) distribution,
+#### and another 50 observations are from the t(3)/sqrt(3)+1 distribution.
+#### So, there is a mean shift at tau=51.
+x1=rt(50,3)/sqrt(3)
+x2=rt(50,3)/sqrt(3)+1
+x = c(x1,x2)
+n = length(x)
+kP=0.01
+hP=11.377
+gnl=matrix(0,n,10)    # Define g_nl
+for(i in 1:n){
+if(x[i] <= q1){gnl[i,1]=1}
+if ((x[i] > q1) & (x[i] <= q2)){gnl[i,2]=1}
+if ((x[i] > q2) & (x[i] <= q3)){gnl[i,3]=1}
+if ((x[i] > q3) & (x[i] <= q4)){gnl[i,4]=1}
+if ((x[i] > q4) & (x[i] <= q5)){gnl[i,5]=1}
+if ((x[i] > q5) & (x[i] <= q6)){gnl[i,6]=1}
+if ((x[i] > q6) & (x[i] <= q7)){gnl[i,7]=1}
+if ((x[i] > q7) & (x[i] <= q8)){gnl[i,8]=1}
+if ((x[i] > q8) & (x[i] <= q9)){gnl[i,9]=1}
+if (x[i] > q9){gnl[i,10]=1}
+}
+# Define the charting statistic C_{n,P}
+Bn = rep(0,n)
+Unobs=matrix(0,n,10)
+Unexp=matrix(0,n,10)
+CnP = rep(0,n)
+Bn[1]=sum((gnl[1,]-f0)^2/f0)
+if(Bn[1] > kP){
+Unobs[1,]=gnl[1,]*(1-kP/Bn[1])
+Unexp[1,]=f0*(1-kP/Bn[1])
+}
+if(Bn[1] <= kP){
+Unobs[1,]=t(rep(0,10))
+Unexp[1,]=t(rep(0,10))
+}
+CnP[1]=sum((Unobs[1,]-Unexp[1,])^2/Unexp[1,])
+CnP
+kP
+Bn[1]
+sum((gnl[1,]-f0)^2/f0)
+gnl[1,]
+f0
+f0
+t(rep(0,10))
+Unexp[i,]
+for(i in 2:n){
+Bn[i]=sum(((Unobs[i-1,]-Unexp[i-1,])+(gnl[i,]-f0))^2/(Unexp[i-1,]+f0))
+if(Bn[i]>kP){
+Unobs[i,]=(Unobs[i-1,]+gnl[i,])*(1-kP/Bn[i])
+Unexp[i,]=(Unexp[i-1,]+f0)*(1-kP/Bn[i])
+}
+if(Bn[i]<=kP){
+Unobs[i,]=t(rep(0,10))
+Unexp[i,]=t(rep(0,10))
+}
+CnP[i]=sum((Unobs[i,]-Unexp[i,])^2/Unexp[i,])
+}
+CnP
+Bn
+kP
+max(0,3)
+qt <- 5
+k <- 6
+max(0,qt - k)
+nrow(tbl.alum)/2
+# author: CU
+# date:
+# description: Replicación de los ejemplos 9.4 y 9.5
+# input: Datos
+# output:
+#    - Graficas y resultados correspondientes de los ejemplos
+#    -
+#---
+rm(list = ls())
+# packages ----------------------------------------------------------------
+library(tidyverse)
+library(ggfortify)
+library(NPMVCP)
+# library(listenv)
+# library(furrr)
+# library(future)
+# paths -------------------------------------------------------------------
+inPath <- file.path('input')
+outPath <- file.path('output')
+# read data ---------------------------------------------------------------
+inResid <- file.path(inPath, 'soilResidual.txt')
+tbl.alum <- read.table(inResid) %>%
+tbl_df()
+data(Alsmelterdata)
+# functions ---------------------------------------------------------------
+# 9.4 ---------------------------------------------------------------------
+# Con datos verdaderos realizar autoArima
+Alsmelterdata %>%
+map(forecast::auto.arima, max.q = 0, max.d = 0)
+Alsmelterdata %>%
+map(ar.yw)
+# Base
+colnames(tbl.alum) <- paste0('X', 1:5)
+nrow(tbl.alum)/2
+dat.train <- tbl.alum[1:93,]
+dat.train %>% cor %>% round(.,4)
+tbl.alum %>% cor %>% round(.,4)
+dat.train <- tbl.alum[1:95,]
+dat.train %>% cor %>% round(.,4)
+Alsmelterdata[1:95,] %>%
+map(ar.yw)
+Alsmelterdata[1:95,]
+Alsmelterdata
+tbl.alum %>%
+mutate(n = seq_along(X1)) %>%
+gather(X, valor, -n) %>%
+ggplot(aes(n, valor)) +
+geom_line() +
+facet_grid(X~.)
+tbl.alum %>% cor %>% round(.,4)
+dat.train %>% cor %>% round(.,4)
+tbl.alum %>%
+gather(X, valor) %>%
+group_by(X) %>%
+nest() %>%
+mutate(plots = map2(data, X, ~.x %>%
+ggplot(aes(valor)) +
+geom_density(alpha = 0.2) +
+xlab(.y) +
+scale_x_continuous(limits = c(-3, 3))) ) %>%
+.$plots %>%
+autoplot()
+tbl.alum %>%
+gather(X, valor) %>%
+group_by(X) %>%
+nest() %>%
+mutate(plots = map2(data, X, ~.x %>%
+ggplot(aes(valor)) +
+geom_density(alpha = 0.2) +
+xlab(.y) +
+scale_x_continuous(limits = c(-3, 3))) ) %>%
+.$plots %>%
+autoplot()
+# functions ---------------------------------------------------------------
+epsilon_h <- function(obs, vec_ep, Ss=NULL){
+# Original
+# saca el vector epsilon de S, en base a la observación de una muestra
+ep <- order(obs)[vec_ep]
+return(epsil_h(ep, Ss))
+}
+dat.train <- tbl.alum[1:95,]
+dat.test <- tbl.alum[96:nrow(tbl.alum),]
+# primer antirango
+p <- 5
+q <- 1
+Ss <- gtools::permutations(p,q,1:p)
+epsi4 <- apply(dat.train,1,epsilon_h, 1:1, Ss)
+# functions ---------------------------------------------------------------
+epsil_h <- function(uno, Ss) apply(Ss, 1, function(x) ifelse(identical(x,uno),1,0))
+epsi4 <- apply(dat.train,1,epsilon_h, 1:1, Ss)
+epsi4
+epsi4 %>% t
+epsi4 %>% rowsum()
+rowsum(epsi4)
+rowSums(epsi4)
+# primer y ultimo antirango
+p <- 5
+q <- 2
+Ss <- gtools::permutations(p,q,1:p)
+Ss
+Ss <- gtools::permutations(p,q,1:p)
+epsi4 <- apply(dat.train,1,epsilon_h, c(1,5), Ss)
+epsi4
+epsi4 %>% t
+epsilon_h
+order(dat.train[48,])
+dat.train[48,]
+order(dat.train[48,] %>% as.matrix())
+order(dat.train[48,] %>% as.matrix())[c(1,5)]
+epsil_h
+order(dat.train[48,] %>% as.matrix())[c(1,5)]
+epsil_h(c(2,3), Ss )
+Ss
+c(2,3)
+apply(Ss, 1, function(x) ifelse(identical(x,c(2,3)),1,0))
+c(2,3)
+Ss[6,]
+identical(Ss[6,],c(2,3))
+Ss[6,]
+c(2,3)
+order(dat.train[48,] %>% as.matrix())[c(1,5)] %>% class()
+class(Ss[6,])
+Ss[6,] %>% dim()
+Ss[6,] %>% length()
+order(dat.train[48,] %>% as.matrix())[c(1,5)] %>% length()
+identical(Ss[6,],c(2,3))
+Ss[6,]
+c(2,3)
+identical(Ss[6,],c(2,3))
+Ss[6,] == c(2,3)
+pru0 <-  <- Ss[6,] == c(2,3)
+pru0 <- Ss[6,] == c(2,3)
+paste0(pru0,collapse = |)
+paste0(pru0,collapse = '|')
+all(pru0)
+all(pru0)
+all(c(T,F))
+all(c(F,T))
+all(c(F,F))
+epsilon_h
+epsil_h
+# functions ---------------------------------------------------------------
+epsil_h <- function(uno, Ss) apply(Ss, 1, function(x) ifelse(all(x == uno),1,0))
+epsilon_h <- function(obs, vec_ep, Ss=NULL){
+# Original
+# saca el vector epsilon de S, en base a la observación de una muestra
+ep <- order(obs)[vec_ep]
+return(epsil_h(ep, Ss))
+}
+Ss <- gtools::permutations(p,q,1:p)
+epsi4 <- apply(dat.train,1,epsilon_h, c(1,5), Ss)
+epsi4
+epsi4 %>% t
+apply(Ss, 1, function(x) ifelse(all(x == c(2,3)),1,0))
+# functions ---------------------------------------------------------------
+epsil_h <- function(uno, Ss) apply(Ss, 1, function(x) ifelse(identical(x,uno),1,0))
+apply(Ss, 1, function(x) ifelse(identical(x,c(2,3)),1,0))
+# functions ---------------------------------------------------------------
+epsil_h <- function(uno, Ss) apply(Ss, 1, function(x) ifelse(identical(x,uno),1,0))
+rowSums(epsi4)
+sum(rowSums(epsi4))
+rowSums(epsi4)/95
+# aplicar la carta MA-CUSUM
+k1 <- 1
+Ss <- gtools::permutations(p,q,1:p)
+epsi4 <- apply(dat.train,1,epsilon_h, 1:1, Ss)
+epsi4 %>% t
+rowSums(epsi4)
+# primer antirango
+p <- 5
+q <- 1
+Ss <- gtools::permutations(p,q,1:p)
+epsi4 <- apply(dat.train,1,epsilon_h, 1:1, Ss)
+epsi4 %>% t
+rowSums(epsi4)
+sum(rowSums(epsi4))
+global
+global$s1 <- global$s2 <- numeric(p)
+# read data ---------------------------------------------------------------
+global <- listenv::listenv()
+global
+4/11

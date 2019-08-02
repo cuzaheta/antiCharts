@@ -1,0 +1,309 @@
+---
+title: "Notas TG2018"
+author: "Camilo Uzaheta"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# packages ----------------------------------------------------------------
+library(tidyverse)
+library(ggfortify)
+library(furrr)
+library(tictoc)
+# require(pbapply)
+# library(listenv)
+# library(future)
+
+# paths -------------------------------------------------------------------
+inPath <- file.path('..','input')
+outPath <- file.path('..','output')
+
+# read data ---------------------------------------------------------------
+# global <- listenv::listenv()
+
+inResid <- file.path(inPath, 'soilResidual.txt')
+tbl.alum <- read.table(inResid) %>% 
+  tbl_df()
+
+# data(Alsmelterdata) # library(NPMVCP)
+```
+
+## Sobre el uso de cartas de control no-paramétricas (libre de distribución)
+
+Se podría utilizar una carta multivariada __EWMA__, aunque esta carta es robusta al supuesto de normalidad fijando el parámetro de suavizamiento en un valor pequeño (<0.05), la carta se vuelve ineficiente para detectar cambios relativamente grandes. Por lo tanto, la propiedad de robustez de la carta EWMA se debe usar con cuidado.
+
+Otra alternativa, es realizar una __transformación__ apropiada para llevarla a la normalidad. En la literatura, las transformaciones existentes para datos multivariados para llevarlos hacían la normalidad multivariada son limitadas, por lo tanto, es desafiante llevarse a cabo.
+
+### Cartas de control multivariadas no paramétricas basadas en rangos.
+
+Además al caso de datos univariados en donde el ordenamiento se puede dar entre observaciones en diferentes puntos de tiempo, en el caso multivariado, el ordenamiento puede ser:
+
+- __logitudinal ranking__ o __longitudinal ordering__ es el ordenamiento entre observaciones en diferentes puntos de tiempo. Entre este tipo de ordenamiento se encuentran las que están basadas en:
+    - _Multivariate nonparametric sign_ (MNS) 
+    - _Multivariate nonparametric signed rank_ (MNSR)
+    - _Spacial sign_
+    - _Spacial rank_
+    - _Concepto de profundidad_ 
+
+
+- __cross-component ranking__ o __croos-component ordering__ es el ordenamiento entre diferentes componentes de una observación en un punto de tiempo. La propuesta de Qiu and Hawkings (2001) se encuentra entre este tipo de ordenamiento.
+
+## La carta MA-CUSUM (_multivariate antirank CUSUM_)
+
+Esta carta está basada en una propuesta en ordenamiento entre las componentes, utilizando el antirango
+
+### Antirango 
+
+Sea $A_n$ el vector de antirangos de $X_n$, este es una permutación del vector $(1,2,...,p)^T$ tal que:
+
+$$X_{A_{n1}} \leq X_{A_{n2}} \leq ... \leq X_{A_{np}}$$
+siendo estas últimas las estadísticas de orden de $\{ X_{j}, j=1,2,..,p\}$. En otra forma, estos son los índices de las estadísticas de orden.
+
+A modo de ejemplo, sea el vector $X$
+$$X = (-1,5,0,3,1,-2)$$
+el vector de rangos asociados a $X$
+$$R = (2,6,3,5,4,1)$$
+y el vector de antirangos de $X$
+$$AR = (6,1,3,5,4,2)$$
+
+#### Rango o antirango?
+
+En el caso que se esté interesado en una carta de control univariada, el rango de esa característica de control entre las observaciones sería relevante. 
+
+En vez de eso, estamos interesados en detectar un cambio en alguna componente ( o componentes), para este problema, el primer o ultimo antirango son particularmente eficientes en detectar un cambio de decremento o incremento, respectivamente, en alguna de las componentes sin saber cuál puede ser, siempre que esta se empiece a volver dominante.
+
+En caso de que no conozcamos la dirección del cambio, una carta basada en ambos tanto el primer y último antirango sería más eficiente en comparación, en cambio los rangos no tienen estas propiedades.
+
+### Prueba de hipotesís
+
+Sea $\mathbf{X}_n = (X_1,X_2,...,X_p)^T$ una observación p-dimensional de la característica de control en el punto de tiempo n durante la fase II. Sin perdida de generalidad, se asume que el vector de medias de IC es $\mathbf{0}$ (En practica $\pmb{\mu}_0$ se estima de un conjunto de datos IC, y este se substrae de todas las observaciones de fase II). Sea $\mu = (\mu_1,\mu_2,...,\mu_p)^T$ el vector de medias en el punto de tiempo n. Entonces, la hipótesis nula en el proceso de control multivariado es:
+
+$$ H_0: \mu_1 = \mu_2 = ... =\mu_p = 0 $$
+
+Siendo equivalente a
+
+$$ H_0^{(1)} :  \mu_1 = \mu_2 = ... =\mu_p $$
+$$ H_0^{(2)} : \sum_{j=1}^{p} \mu_j = 0$$
+La hipótesis $H_0^{(1)}$ está relacionada con el orden de las magnitudes de las medias. Cuando $H_0^{(1)}$ es verdad, $H_0^{(2)}$ está relacionada con las magnitudes de las medias. En los casos cuando el vector de medias esta fijo en el mismo valor pero distinto a cero, la violación de $H_0$ implica la violación en $H_0^{(1)}$ o $H_0^{(2)}$, o en ambas. 
+
+#### Carta para $H_0^{(2)}$
+
+Para detectar violaciones para esta prueba de hipótesis se puede usar una carta de control univariada CUSUM basada en $\sum_{j=1}^{p} X_j$
+
+#### Carta para $H_0^{(1)}$
+
+Para poder detectar violaciones de esta prueba de hipótesis, se puede usar la carta __MA CUSUM__ propuesta por Qiu y Hawkins (2001). 
+
+#### Carta para ambas pruebas de hipótesis
+
+Esta es una carta propuesta por Qiu y Hawkins (2003), que tiene el principio de la __MA CUSUM__ pero con una modificación para poder detectar los casos en donde existe un cambio de magnitud, pero no de orden de magnitud.
+
+## Desarrollo en R
+
+Anexo con las funciones construidas en R para la carta __MA CUSUM__.
+
+```{r}
+# functions ---------------------------------------------------------------
+perm <- function(n,k){choose(n,k) * factorial(k)}
+
+# Funciones necesarias para calcular Qh,S1,S2 para el algoritmo
+Qt <- function(S1_1,S2_1,et,g1=g) sum(((S1_1-S2_1)+(et-g1))^2/(S2_1+g1))
+
+# S1 observada, S2 esperada
+Sh.12 <- function(S1_1,S2_1,et,Qt,g1=g,k1=k){
+  if(Qt<=k1){
+    S1 <- S2 <- S1_1*0
+  }else if(Qt>k1){
+    S1 <- ( (S1_1+et)*(Qt-k1) )/(Qt)
+    S2 <- ( (S2_1+g1)*(Qt-k1) )/(Qt)
+  }else{
+    message('Qt revisar')
+  }
+  return(list(S1=S1,S2=S2))
+}
+
+# Función para el calculo del RL de las dos cartas
+rl.MACusum <- function(i, L, k, g, alter=F){
+  # Esta función realiza el calculo de un RL bajo la carta MA-Cusum.
+  # Necesita las funciones Qt y Sh.12.
+  
+  # setTxtProgressBar(pb, i)
+  RL <- 0
+  flag <- T
+  s1 <- s2 <- numeric(length(g))
+  
+  while(flag){
+    RL <- RL + 1
+    
+    if(!alter){
+      e1t <- rmultinom(1, 1, g)[,1]
+    }else{ # falta arreglar este pedazo por el conjunto Ss
+      obs <- mvrnorm(1, Vmu, Mcov)
+      e1t <- epsilon_hC(obs, vec, Ss)
+    }
+    
+    qt <- Qt(s1,s2,e1t,g)
+    s12 <- Sh.12(s1,s2,e1t,qt,g,k)
+    s1 <- s12$S1
+    s2 <- s12$S2
+    yt <- max(0,qt - k) # 
+    flag <- yt < L
+  }
+  return(RL)
+}
+
+pbMACusum.RL <- function(L, k, g, n.iter=1e3, alter = F){
+  # Esta función calcula una cantidad n.iter de RL's.
+  # Lo unico especial es que tiene una barra de progreso.
+  # Esta función necesita la función rl.MACusum.
+  
+  # pb <- txtProgressBar(max=I,style = 3,char='-')
+  RLs <- pbapply::pbsapply(1:n.iter, rl.MACusum,L, k, g,alter)
+  return(RLs)
+}
+
+future_L <- function(L, k, g, n.iter=1e3, alter = F){
+  # Esta función calcula una cantidad n.iter de RL's.
+  # Pero realiza estos calculos en distribuido a diferencia pbMACusum.RL
+  # esto con el objetivo de demorarse menos tiempo que pbMACusum.RL para posibles ciclos 
+  # de esta función.
+  # Se necesita la función rl.MACusum.
+  
+  plan(multiprocess)
+  # plan(multiprocess, workers = 3)
+  RLs <- future_map_dbl(1:n.iter, rl.MACusum,L, k, g, alter)
+  cat('Finished the ARL calculation with L = ', L, '\n')
+  return(mean(RLs))
+}
+
+# Funciones usadas para calcular los vectores epsilon de indicadoras para la carta
+epsil_h <- function(uno, Ss) apply(Ss, 1, function(x) ifelse(all(x == uno),1,0))
+epsilon_h <- function(obs, ar, Ss=NULL){
+  # Original
+  # saca el vector epsilon de S, en base a la observación de una muestra
+  ep <- order(obs)[ar]
+  return(epsil_h(ep, Ss))
+}
+
+# Función para calculo de la estadística desde historico
+statistic.MACusum <- function(set.data, ar, Ss, k,g = NULL){
+  # Desde un conjunto de datos calcula la estadistica de la carta MA-Cusum
+  # Se necesita las funciones Qt y Sh.12
+  
+  set.epsi <- apply(set.data,1,epsilon_h, ar, Ss) %>% t
+  if(is.null(g)){ # este if se encarga de generar la distribución del ar de los datos
+    g <- colSums(set.epsi)/sum(colSums(set.epsi))
+    if( !all(g != 0) ){
+      warning(paste0('There was a correction in vector g of ', sum(g == 0), 
+                     ' elements in 0 by 0.5'))
+      conteo <- colSums(set.epsi)
+      conteo[conteo == 0] <- 0.5
+      g <- conteo/sum(conteo)
+    }
+  }
+  s1 <- s2 <- numeric(length(g))
+  
+  vec.y <- numeric(nrow(set.data))
+  for (ii in 1:nrow(set.data)) {
+    e1t <- set.epsi[ii,]
+    qt <- Qt(s1,s2,e1t,g)
+    if(ii == 1) qt <- 0 # si es como example88.r
+    s12 <- Sh.12(s1,s2,e1t,qt,g,k)
+    s1 <- s12$S1
+    s2 <- s12$S2
+    vec.y[ii] <- max(0,qt - k)
+  }
+  
+  return(vec.y)
+}
+
+# --- --- --- --- --- --- --- --- 
+OCrl.MACusum <- function(i, L, k, g, Vmu, Mcov, ar, Ss, alter=F){
+  # Esta función realiza el calculo de un RL fuera de control bajo la carta MA-Cusum.
+  # En cierta forma sirve para el calculo de la estadística propuesta. 
+  # Necesita las funciones Qt y Sh.12.
+  
+  RL <- 0
+  flag <- T
+  s1 <- s2 <- numeric(length(g))
+  
+  while(flag){
+    RL <- RL + 1
+    
+    if(!alter){
+      obs <- MASS::mvrnorm(1, Vmu, Mcov)
+      e1t <- epsilon_h(obs, ar, Ss)
+    }else{ # faltaría la función epsilon_hC
+      obs <- MASS::mvrnorm(1, Vmu, Mcov)
+      e1t <- epsilon_hC(obs, ar, Ss)
+    }
+    
+    qt <- Qt(s1,s2,e1t,g)
+    s12 <- Sh.12(s1,s2,e1t,qt,g,k)
+    s1 <- s12$S1
+    s2 <- s12$S2
+    yt <- max(0,qt - k) # 
+    flag <- yt < L
+  }
+  return(RL)
+}
+
+future_OCarl.MAC <- function(Vmu,ar,L,Mcov, k, n.iter=1e3, alter = F){
+  # Esta función calcula una cantidad n.iter de RL's.
+  # Pero realiza estos calculos en distribuido a diferencia pbMACusum.RL
+  # esto con el objetivo de demorarse menos tiempo que pbMACusum.RL para posibles ciclos 
+  # de esta función.
+  # Se necesita la función rl.MACusum.
+  p <- length(Vmu)
+  q <- length(ar)
+  Ss <- gtools::permutations(p,q,1:p)
+  g1 <- numeric(perm(p,q)) + 1/perm(p,q)
+  
+  plan(multiprocess)
+  # plan(multiprocess, workers = 3)
+  RLs <- future_map_dbl(1:n.iter, OCrl.MACusum,L, k, g1,Vmu,Mcov,ar,Ss,alter)
+  cat('Finished the ARL calculation with L = ', Vmu, ' y ', ar, '\n')
+  return(mean(RLs))
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
